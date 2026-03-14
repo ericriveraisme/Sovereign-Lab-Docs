@@ -2,24 +2,38 @@
 **Last Updated:** 2026-03-13
 **Status:** Active Production
 
-## 1. Networking Core (The "Lighthouse")
-The foundation of the lab is built on CCNA-aligned routing principles, utilizing a dedicated virtual router rather than consumer-grade flat networking.
+## 1.  🛰️ Networking & Routing
 
-* **Node:** `Core-Router` (LXC 100)
-* **Routing Engine:** FRRouting (FRR) managed via the `vtysh` CLI.
-* **Interfaces & Topology:**
-  * **WAN (eth0):** `192.168.0.235/24` (Bridged via `vmbr0`)
-  * **LAN (eth1):** `10.0.10.1/24` (VLAN 10 Gateway)
+The lab utilizes a "Router-on-a-Stick" topology with the Core-Router (LXC 100) serving as the primary gateway.
 
-> **The Gold Master Rule:** After any routing changes in `vtysh`, always run `write mem` and manually back up `/etc/frr/frr.conf`. Without this file, the lab loses its routing brain on reboot.
+### 🗺️ Static Routing & Persistence
 
-### Network Subnetting Logic
-For our internal VLAN 10 (`10.0.10.0/24`), the usable host calculation follows standard IPv4 logic:
-$$\text{Usable Hosts} = 2^{32 - \text{prefix}} - 2$$
-$$2^{32 - 24} - 2 = 2^8 - 2 = 254 \text{ usable IPs}$$
-* Gateway: `.1`
-* Usable Range: `.2` to `.254`
-* Broadcast: `.255`
+To ensure the Proxmox Host can communicate with the internal Management Plane (VLAN 10), a persistent static route is configured on the host bridge.
+
+- **Gateway:** `192.168.0.235` (Core-Router WAN)
+    
+- **Target Subnet:** `10.0.10.0/24` (Management VLAN)
+    
+- **Persistence Method:** `post-up` directive in `/etc/network/interfaces`.
+    
+
+```
+# Host /etc/network/interfaces snippet
+auto vmbr0
+iface vmbr0 inet static
+    address 192.168.0.232/24
+    post-up ip route add 10.0.10.0/24 via 192.168.0.235
+```
+
+## 🗺️ DNS Topology (Source of Truth)
+
+The lab ignores external/ISP DNS in favor of an internal authoritative resolver.
+
+- **Primary DNS:** `10.0.10.53` (Technitium)
+    
+- **Internal Domain:** `.sovereign.lab`
+    
+- **Upstream:** Cloudflare (1.1.1.1) via DNS-over-TLS.
 
 ## 2. Management & Operations (The "Cockpit")
 * **Node:** `sovereign-ops` (VM 101)
