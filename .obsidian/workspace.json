@@ -277,13 +277,23 @@
               "icon": "lucide-list",
               "title": "Outline of README"
             }
+          },
+          {
+            "id": "013f4d9b0718d1f1",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 200
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -297,7 +307,7 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "efcd454c5a9f5fbb",
+  "active": "013f4d9b0718d1f1",
   "lastOpenFiles": [
     "01_Infrastructure/Architecture_Overview.md",
     "02_Services/Netdata-Telemetry.md",
