@@ -37,14 +37,14 @@ The lab is built on a single Proxmox Virtual Environment (PVE) node, logically p
 
 ## 💻 Current Infrastructure (The Stack)
 
-|   |   |   |   |   |
-|---|---|---|---|---|
-|**ID**|**Hostname**|**Role**|**IP Address**|**Tech Stack**|
-|`Node`|`sovereign`|Hypervisor|`192.168.0.232`|Proxmox VE 8+|
-|`100`|`core-router`|Lab Gateway & Routing|`10.0.10.1`|Ubuntu / FRR / iptables|
-|`101`|`sovereign-ops`|Management Workstation|`10.0.10.10`|Debian / Tailscale / SSH|
-|`103`|`netdata-monitor`|Telemetry & Health|`10.0.10.20`|Ubuntu / Netdata|
-|`104`|`dns-primary`|"Source of Truth" DNS|`10.0.10.53`|Ubuntu / Technitium DNS|
+|        |                   |                        |                 |                          |
+| ------ | ----------------- | ---------------------- | --------------- | ------------------------ |
+| **ID** | **Hostname**      | **Role**               | **IP Address**  | **Tech Stack**           |
+| `Node` | `sovereign`       | Hypervisor             | `192.168.0.232` | Proxmox VE 9.1.1         |
+| `100`  | `core-router`     | Lab Gateway & Routing  | `10.0.10.1`     | Ubuntu / FRR / iptables  |
+| `101`  | `sovereign-ops`   | Management Workstation | `10.0.10.10`    | Debian / Tailscale / SSH |
+| `103`  | `netdata-monitor` | Telemetry & Health     | `10.0.10.20`    | Ubuntu / Netdata         |
+| `104`  | `dns-primary`     | "Source of Truth" DNS  | `10.0.10.53`    | Ubuntu / Technitium DNS  |
 
 ## 🛡️ Core Design Principles
 
