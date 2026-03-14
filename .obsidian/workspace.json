@@ -125,12 +125,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "03_Runbooks/VLAN-Connectivity-Troubleshooting.md",
+                "file": "01_Infrastructure/Architecture_Overview.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "VLAN-Connectivity-Troubleshooting"
+              "title": "Architecture_Overview"
             }
           }
         ],
@@ -309,8 +309,10 @@
   },
   "active": "efcd454c5a9f5fbb",
   "lastOpenFiles": [
-    "README.md",
+    "05_Articles/Sovereign_Lab_DNS_Routing_Post.md",
     "03_Runbooks/VLAN-Connectivity-Troubleshooting.md",
+    "05_Articles",
+    "README.md",
     "01_Infrastructure/Architecture_Overview.md",
     "02_Services/Netdata-Telemetry.md",
     "02_Services/Technitium-DNS.md",
