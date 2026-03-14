@@ -40,7 +40,3 @@ To ensure absolute data persistence, the lab strictly adheres to a 3-tier redund
 The physical endpoints used to interface with the Sovereign core.
 * **Tiamat:** Primary Laptop (Windows/WSL) - Mobile command and control.
 * **Bahamut:** Main Workstation (Windows/WSL) - Heavy lifting, documentation hub, and Tier 3 storage provider.
-
-## 5. Critical Automated Interventions
-* **The Ghost IP Fix:** A persistent script located at `/usr/local/bin/evict-ghost-ip.sh` on the `Core-Router`. It runs via `@reboot` cron to automatically delete the `192.168.0.232` squatter IP from `eth0`, ensuring upstream routing doesn't fail.
-* **Postfix Mailer:** Placeholder fix implemented to ensure internal LXC/VM mailing capabilities do not hang the system.
