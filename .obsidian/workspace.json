@@ -125,12 +125,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "03_Runbooks/VLAN-Connectivity-Troubleshooting.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "VLAN-Connectivity-Troubleshooting"
             }
           }
         ],
@@ -307,8 +307,10 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "013f4d9b0718d1f1",
+  "active": "efcd454c5a9f5fbb",
   "lastOpenFiles": [
+    "README.md",
+    "03_Runbooks/VLAN-Connectivity-Troubleshooting.md",
     "01_Infrastructure/Architecture_Overview.md",
     "02_Services/Netdata-Telemetry.md",
     "02_Services/Technitium-DNS.md",
@@ -318,7 +320,6 @@
     "02_Services/Tailscale-Mesh.md",
     "01_Infrastructure/Sovereign-Ops-VM101.md",
     "01_Infrastructure/Core-Router-LXC100.md",
-    "README.md",
     "04_Change_Logs",
     "03_Runbooks",
     "02_Services",
