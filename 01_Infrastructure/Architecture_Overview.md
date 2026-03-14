@@ -40,6 +40,3 @@ To ensure absolute data persistence, the lab strictly adheres to a 3-tier redund
 The physical endpoints used to interface with the Sovereign core.
 * **Tiamat:** Primary Laptop (Windows/WSL) - Mobile command and control.
 * **Bahamut:** Main Workstation (Windows/WSL) - Heavy lifting, documentation hub, and Tier 3 storage provider.
-
-
-auth test
