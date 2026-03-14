@@ -59,19 +59,24 @@ The lab is built on a single Proxmox Virtual Environment (PVE) node, logically p
     3. Off-Site Sync via automated `rsync` jobs to external workstations.
     
 
-## 🚀 Future Roadmap
+## 🚀 Future Roadmap & Active Pipeline
 
-The lab is a living environment. Upcoming milestones include:
+The lab is a living environment. Current engineering sprints and upcoming milestones include:
 
-- [ ] **Unified Web Portal (Reverse Proxy):** Deploying Nginx/Nginx Proxy Manager to route clean URLs (e.g., `portal.sovereign.lab`) to internal services, stripping the need for port memorization.
+
+- [ ] 🎛️**Intelligent Telemetry (Pulse):** Spinning up an LXC running `rcourtman/Pulse` to act as the "Sovereign View" dashboard, utilizing AI-driven "Patrol" health checks for proactive Proxmox monitoring.
     
-- [ ] **Subnet Routing / Tailscale Gateway:** Architecting a dedicated bridge to allow internal lab LXCs to resolve and reach Tailscale `.ts.net` nodes without installing Tailscale on every container.
+- [ ] 💓**External Heartbeat Alerts (Uptime Kuma):** Deploying a dedicated Uptime Kuma LXC to act as a "Dead Man's Snitch," ensuring immediate push notifications if the Core-Router drops WAN access.
     
-- [ ] **Distributed Telemetry:** Expanding Netdata from a single-node monitor to a master-child architecture, pulling live metrics from the Core-Router and DNS servers.
+- [ ] 🛠️**Enhanced Hypervisor Management:** Evaluating `ProxMenux` to streamline native PVE host administration and menu-driven operations.
     
-- [ ] **Automated Alerting:** Configuring a Postfix SMTP Relay to dispatch critical alerts to mobile devices.
+- [ ] 🗄️**Hardware Asset Tracking:** Exploring `RackPeak` to visually document and track physical server constraints alongside our Docs-as-Code Obsidian vault.
     
-- [ ] **Infrastructure as Code (IaC):** Transitioning manual container provisioning to automated deployments using Terraform/Ansible.
+- [ ] 🌐**Unified Web Portal (Reverse Proxy):** Deploying Nginx/Nginx Proxy Manager to route clean URLs (e.g., `portal.sovereign.lab`) to internal services, stripping the need for port memorization.
+    
+- [ ] 🛣️ **Subnet Routing / Tailscale Gateway:** Architecting a dedicated bridge to allow internal lab LXCs to resolve and reach Tailscale `.ts.net` nodes without installing Tailscale on every container.
+    
+- [ ] 📜 **Infrastructure as Code (IaC):** Transitioning manual container provisioning to automated deployments using Terraform and Ansible.
     
 
 _“Amateurs hack systems. Professionals build architecture.”_
