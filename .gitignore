@@ -1,2 +1,28 @@
-.obsidian/workspace
-.obsidian/workspace-mobile
+# --- Security & Sensitive Data ---
+# Never allow private keys or credentials to be tracked
+*.key
+*.pem
+id_ed25519
+id_rsa
+.env
+auth.json
+
+# --- Obsidian Specifics ---
+# We want the notes (.md) and images, but NOT the local UI state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/graph.json
+.obsidian/appearance.json
+.obsidian/plugins/
+.obsidian/cache/
+# Note: Keep .obsidian/app.json if you want to sync core settings like 'Fold heading'
+
+# --- System & Temp Files ---
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# --- Backup/Archive Files ---
+*.bak
+*.swp
