@@ -29,3 +29,6 @@ Thumbs.db
 
 # --- Local Licensed Content (Do Not Distribute) ---
 07_Knowledge_Base/Practical_Linux_System_Administration/practicallinuxsystemadministration.pdf
+
+# --- Package Artifacts ---
+*.deb
