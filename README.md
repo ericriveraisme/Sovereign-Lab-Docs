@@ -143,6 +143,7 @@ Everything in this repository is navigable from here. Click any link to jump dir
 | [Breaking the Glass — Leviathan Migration](05_Articles/Leviathan_Migration_Breaking_The_Glass.md) | The full story of leaving WSL behind and building on bare metal |
 | [Leviathan Project Draft](05_Articles/Leviathan_Project_Article_Draft.md) | Companion piece on troubleshooting culture and automation |
 | [DNS & Routing Deep Dive](05_Articles/Sovereign_Lab_DNS_Routing_Post.md) | Layer 3 routing puzzles, ghost IPs, and DNS authority |
+| [Sovereign Lab Disaster Recovery](05_Articles/Sovereign_Lab_DR_Chronicle_Draft.md) | Disaster Recovery update with timeline of RTO and MTTR |
 
 ### Templates & Reference
 
