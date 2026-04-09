@@ -32,3 +32,9 @@ Thumbs.db
 
 # --- Package Artifacts ---
 *.deb
+
+# --- Private Interview Prep ---
+Interview-Prep/
+
+# --- Local Diagram Previews ---
+Diagrams/*_preview.html
