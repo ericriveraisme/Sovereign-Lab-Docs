@@ -6,7 +6,8 @@ Welcome to the **Sovereign Lab**. This repository serves as the public documenta
 
 ## Quick Access
 
-- Public topology diagram (open in browser): [Sovereign Lab Public Network Topology v1.0](Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
+- Public topology diagram (rendered view): [Sovereign Lab Public Network Topology v1.0](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ericriveraisme/Sovereign-Lab-Docs/main/Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
+- Diagram source file: [Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html](Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
 
 ## 🎯 Project Purpose
 
