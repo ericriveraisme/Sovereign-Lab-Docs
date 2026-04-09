@@ -4,6 +4,10 @@
 
 Welcome to the **Sovereign Lab**. This repository serves as the public documentation, infrastructure-as-code (IaC) repository, and architectural blueprint for an enterprise-grade, self-hosted Proxmox environment.
 
+## Quick Access
+
+- Public topology diagram (open in browser): [Sovereign Lab Public Network Topology v1.0](Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
+
 ## 🎯 Project Purpose
 
 The Sovereign Lab was created to bridge the gap between theoretical networking concepts (like CCNA) and practical, hands-on systems engineering. The core objective is to build an environment that is:
