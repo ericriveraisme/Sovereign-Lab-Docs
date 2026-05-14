@@ -1,5 +1,6 @@
 # 🏛️ Sovereign Lab: Architecture Overview
-**Last Updated:** 2026-03-13
+**Last Updated:** 2026-05-13
+**Version:** 1.2
 **Status:** Active Production
 
 ## 1.  🛰️ Networking & Routing
@@ -52,6 +53,31 @@ To ensure absolute data persistence, the lab strictly adheres to a 3-tier redund
 
 ## 4. Hardware Assets (The "Sentinels")
 The physical endpoints used to interface with the Sovereign core.
-* **Tiamat:** Primary Laptop (Windows/WSL) - Mobile command and control.
-* **Bahamut:** Main Workstation (Windows/WSL) - Heavy lifting, documentation hub, and Tier 3 storage provider.
+* **Tiamat:** Linux Compute Node — migrated from Windows. Secondary workstation.
+* **Bahamut:** Main Workstation (Windows 10/11) — Heavy compute (i7-10700KF / RX 7800 XT), documentation hub, Tier 3 storage provider, and **NUT Slave**. See [Bahamut-Node.md](Bahamut-Node.md).
+
+## 5. ⚡ Power Management Architecture
+The lab uses **Network UPS Tools (NUT)** in a master/slave topology to provide coordinated, graceful shutdown across all nodes during power events.
+
+| Component | Role | Detail |
+|:---|:---|:---|
+| **Amazon Basics 1500VA** | UPS Hardware | CyberPower CP1500PFCLCD OEM. Pure Sine Wave. USB-connected to Proxmox. |
+| **Proxmox Host** | NUT Master | Reads USB telemetry. Broadcasts on TCP `3493`. Issues FSD to all slaves at LB threshold. |
+| **Bahamut** | NUT Slave | Polls Proxmox on `3493`. Sheds load at 70% battery. Native Windows Service (LocalSystem). |
+
+### Shutdown Cascade
+1. UPS detects power loss → broadcasts `OB` flag.
+2. Bahamut WinNUT detects `OB` → graceful shutdown at 70% battery (sacrificial node).
+3. Proxmox detects `LB` (10% / ≤300s) → gracefully halts all VMs/LXCs → powers off.
+4. UPS executes killpower.
+
+### Restoration Cascade
+1. AC power restored → UPS powers outlets.
+2. Proxmox auto-boots (BIOS: `Restore on AC Power Loss` → `Always On`).
+3. All Start-at-Boot VMs/LXCs come online.
+4. Proxmox cron fires WoL magic packet to Bahamut after 45s delay.
+5. Bahamut wakes from S5 and reconnects to NUT Master.
+
+See [NUT-Power-Management.md](../02_Services/NUT-Power-Management.md) for full configuration details.
+See [Sovereign-Lab-DR-Power-Management-Runbook.md](../03_Runbooks/Sovereign-Lab-DR-Power-Management-Runbook.md) for operational runbook.
 
