@@ -4,69 +4,129 @@
 
 Welcome to the **Sovereign Lab**. This repository serves as the public documentation, infrastructure-as-code (IaC) repository, and architectural blueprint for an enterprise-grade, self-hosted Proxmox environment.
 
+A recent change to the operating model is the introduction of a local-only AI-assisted Proxmox workflow. The lab architecture remains documented here, while the live connection to the hypervisor is kept outside the Git-tracked repo to protect secrets and keep the public repo focused on architecture and reasoning.
+
 ## Quick Access
 
-- Public topology diagram (rendered view): [Sovereign Lab Public Network Topology v1.0](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ericriveraisme/Sovereign-Lab-Docs/main/Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
-- Diagram source file: [Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html](Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
+- Public topology diagram: [Sovereign Lab Public Network Topology v1.0](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ericriveraisme/Sovereign-Lab-Docs/main/Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
+- Diagram source: [Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html](Diagrams/Sovereign-Lab-Network-Topology_Public_v1.0.html)
+- Local AI + Proxmox integration notes: [04_Change_Logs/AI_Proxmox_MCP_Integration.md](04_Change_Logs/AI_Proxmox_MCP_Integration.md)
+- Baseline lab review: [04_Change_Logs/Proxmox_Baseline_Audit_2026-08-15.md](04_Change_Logs/Proxmox_Baseline_Audit_2026-08-15.md)
 
 ## 🎯 Project Purpose
 
-The Sovereign Lab was created to bridge the gap between theoretical networking concepts (like CCNA) and practical, hands-on systems engineering. The core objective is to build an environment that is:
+The Sovereign Lab is a hands-on infrastructure engineering environment designed to bridge the gap between classroom networking and real systems work. It is a live, self-hosted lab for exploring routing, DNS, virtualization, automation, security, and operational design at a practical level.
 
-1. **Resilient:** Survives hardware failures, configuration mistakes, and network drops.
-    
-2. **Sovereign:** Completely self-hosted, bypassing reliance on external cloud providers for core routing, DNS, and telemetry.
-    
-3. **Isolated yet Accessible:** Utilizes logical network separation (VLANs) while remaining accessible from anywhere via a secure zero-trust overlay network.
-    
+The project emphasizes four things:
 
-This project represents a commitment to "Learning in Public," documenting the real-world challenges of building a data center on a desk.
+1. **Operational realism:** Building systems that behave like production infrastructure, not just lab demos.
+2. **Self-sovereignty:** Keeping critical services local and under direct control instead of depending on managed cloud primitives.
+3. **Documentation-first engineering:** Capturing decisions, failures, recovery paths, and design evolution in public.
+4. **Automation and context efficiency:** Using AI-assisted tooling and structured runbooks to reduce friction while keeping the operator in control.
 
-## 🏗️ High-Level Architecture
+This repository represents a commitment to learning in public and documenting real infrastructure decisions as they evolve.
 
-The lab is built on a single Proxmox Virtual Environment (PVE) node, logically partitioned using a "Router-on-a-Stick" topology.
+## 🏗️ Architecture Snapshot
 
-### Network Topology
+The lab is built around a Proxmox VE environment with a layered, routed topology used to simulate enterprise-style networking and system operations.
 
-- **Physical Gateway:** Home Network (`192.168.0.x`)
-    
-- **Core-Router (LXC):** The heart of the lab. Powered by FRR (Free Range Routing), it handles inter-VLAN routing, NAT masquerading, and isolates the lab from the broader home network.
-    
-- **VLAN 10 (Management Plane):** `10.0.10.0/24` - Infrastructure, DNS, Monitoring.
-    
-- **VLAN 20 (User Plane):** `10.0.20.0/24` - Isolated playground for testing and user-space applications.
-    
+### Core Network Model
 
-### Security & Remote Access
+- **Physical gateway:** Home network at `192.168.0.x`
+- **Core router:** LXC-based FRR deployment handling inter-VLAN routing, NAT, policy separation, and lab isolation
+- **Management plane:** `10.0.10.0/24` for infrastructure, DNS, monitoring, and admin services
+- **User plane:** `10.0.20.0/24` for isolated testing, sandbox workloads, and experimentation
+- **Remote access:** Tailscale overlay network for secure SSH, VS Code, and internal connectivity without exposing services broadly
 
-- **Tailscale:** Deployed as the primary secure overlay network (`.ts.net`), allowing seamless, secure SSH and VS Code Remote access into the management plane without exposing ports to the public internet.
-    
+### Current Stack
 
-## 💻 Current Infrastructure (The Stack)
+| ID | Hostname | Role | IP | Stack |
+| --- | --- | --- | --- | --- |
+| Node | `sovereign` | Hypervisor | `192.168.0.232` | Proxmox VE 9.1.1 |
+| 100 | `core-router` | Lab gateway and routing | `10.0.10.1` | Ubuntu / FRR / iptables |
+| 101 | `sovereign-ops` | Management workstation | `10.0.10.10` | Debian / Tailscale / SSH |
+| 103 | `netdata-monitor` | Telemetry and health | `10.0.10.20` | Ubuntu / Netdata |
+| 104 | `dns-primary` | Authoritative DNS | `10.0.10.53` | Ubuntu / Technitium DNS |
 
-|        |                   |                        |                 |                          |
-| ------ | ----------------- | ---------------------- | --------------- | ------------------------ |
-| **ID** | **Hostname**      | **Role**               | **IP Address**  | **Tech Stack**           |
-| `Node` | `sovereign`       | Hypervisor             | `192.168.0.232` | Proxmox VE 9.1.1         |
-| `100`  | `core-router`     | Lab Gateway & Routing  | `10.0.10.1`     | Ubuntu / FRR / iptables  |
-| `101`  | `sovereign-ops`   | Management Workstation | `10.0.10.10`    | Debian / Tailscale / SSH |
-| `103`  | `netdata-monitor` | Telemetry & Health     | `10.0.10.20`    | Ubuntu / Netdata         |
-| `104`  | `dns-primary`     | "Source of Truth" DNS  | `10.0.10.53`    | Ubuntu / Technitium DNS  |
+## 🧠 Engineering Approach
+
+This project is intentionally structured as both a technical lab and a professional portfolio of systems thinking.
+
+- **Source of truth:** The repo documents the architecture, operational decisions, and recovery procedures.
+- **Live state validation:** Proxmox and system state are checked against the repo before and after change windows.
+- **Human-led execution:** Changes are reviewed and approved by the operator, even when AI assists with gathering information and drafting recommendations.
+- **Operational discipline:** Backups, runbooks, patch planning, and drift review are treated as first-class work.
+
+## ✅ Highlights and Milestones
+
+- [x] **Layer 3 inter-VLAN routing** with FRR and NAT policy enforcement
+- [x] **Authoritative DNS** using Technitium for local service discovery and lab naming
+- [x] **Zero-trust remote access** with Tailscale overlay networking
+- [x] **Automated Git-based router backups** and operational runbook discipline
+- [x] **Postfix SMTP relay** for system notifications and operational alerting
+- [x] **Workstation migration and bare-metal rebuild workflows** using Git, SSH, and secure automation
+- [x] **Telemetry stack** combining Netdata, service monitoring, and health visibility
+
+## 🚀 Current Direction and Future Expansion
+
+The next phase of the lab focuses on making the environment more realistic, more resilient, and more useful as an engineering sandbox.
+
+Planned work includes:
+
+- **AI-assisted operations and drift detection** for Proxmox, VMs, LXCs, and configuration state
+- **vWAN / transit expansion** to simulate broader networking and route policy changes
+- **FRR and BGP validation** for realistic route advertisement and failover scenarios
+- **VLAN and interface hardening** for a more layered network topology
+- **Infrastructure automation** using declarative tooling and repeatable provisioning patterns
+- **Operational visibility** through service health, alerting, reverse proxying, and dashboarding
+
+This is the foundation of a modern operations mindset: keep the environment observable, documented, and safe to evolve.
+
+## 📍 Repository Navigation
+
+This repo is organized to showcase both architecture and execution.
+
+### Infrastructure
+
+- [01_Infrastructure/Architecture_Overview_1.1.md](01_Infrastructure/Architecture_Overview_1.1.md)
+- [01_Infrastructure/Network-Architecture.md](01_Infrastructure/Network-Architecture.md)
+- [01_Infrastructure/Core-Router-LXC100.md](01_Infrastructure/Core-Router-LXC100.md)
+- [01_Infrastructure/Sovereign-Ops-VM101.md](01_Infrastructure/Sovereign-Ops-VM101.md)
+
+### Services
+
+- [02_Services/Technitium/Technitium-DNS_1.1.md](02_Services/Technitium/Technitium-DNS_1.1.md)
+- [02_Services/Netdata-Telemetry.md](02_Services/Netdata-Telemetry.md)
+- [02_Services/Tailscale-Mesh.md](02_Services/Tailscale-Mesh.md)
+
+### Runbooks and Operations
+
+- [03_Runbooks/Proxmox-Full-DR-Playbook.md](03_Runbooks/Proxmox-Full-DR-Playbook.md)
+- [03_Runbooks/VLAN-Connectivity-Troubleshooting.md](03_Runbooks/VLAN-Connectivity-Troubleshooting.md)
+- [08_SOP/Standard Operating Procedure - Automated Git-Based Router Backups.md](08_SOP/Standard%20Operating%20Procedure%20-%20Automated%20Git-Based%20Router%20Backups.md)
+
+### Change Logs and Historical Work
+
+- [04_Change_Logs/AI_Proxmox_MCP_Integration.md](04_Change_Logs/AI_Proxmox_MCP_Integration.md)
+- [04_Change_Logs/Leviathan_Node_Migration_Project.md](04_Change_Logs/Leviathan_Node_Migration_Project.md)
+- [04_Change_Logs/Leviathan_Project_Review.md](04_Change_Logs/Leviathan_Project_Review.md)
+
+### Articles and Writing
+
+- [05_Articles/Leviathan_Migration_Breaking_The_Glass.md](05_Articles/Leviathan_Migration_Breaking_The_Glass.md)
+- [05_Articles/Sovereign_Lab_DNS_Routing_Post.md](05_Articles/Sovereign_Lab_DNS_Routing_Post.md)
+- [05_Articles/Sovereign_Lab_DR_Chronicle_Draft.md](05_Articles/Sovereign_Lab_DR_Chronicle_Draft.md)
 
 ## 🛡️ Core Design Principles
 
-- **The Source of Truth:** Bypassing default/inherited configurations (like hypervisor MagicDNS) in favor of a dedicated, locally hosted DNS server (Technitium) to manage forward/reverse zones for the `.sovereign.lab` domain.
-    
-- **Persistence First:** Ensuring that every network change, route, or interface configuration survives a hard reboot.
-    
-- **3-Tier Backup Strategy:** 1. Local Compute (SSD) for fast execution.
-    
-    2. Local Vault (HDD) for scheduled Proxmox snapshot backups.
-    
-    3. Off-Site Sync via automated `rsync` jobs to external workstations.
-    
+- **Persistence first:** Configuration is designed to survive reboot, migration, and recovery events.
+- **Least privilege:** Access is intentionally scoped and reviewed before being expanded.
+- **Observable systems:** Health, telemetry, and route validation are treated as foundational requirements.
+- **Document everything:** The repo is both an operational record and a technical narrative of how the lab evolved.
 
-## ✅ Completed Milestones
+---
+
+_This project reflects a modern systems engineering approach: build for resilience, prove the work in public, and keep the architecture honest through documentation and live validation._
 
 - [x] **Layer 3 Inter-VLAN Routing** — FRR-powered router-on-a-stick topology with NAT masquerading
 - [x] **Authoritative DNS** — Technitium DNS server as the single source of truth for `.sovereign.lab`
@@ -78,10 +138,13 @@ The lab is built on a single Proxmox Virtual Environment (PVE) node, logically p
 
 ## 🚀 Active Roadmap
 
-- [ ] 🎛️ **Intelligent Telemetry (Pulse):** AI-driven "Patrol" health checks for proactive Proxmox monitoring
-- [ ] 💓 **External Heartbeat Alerts (Uptime Kuma):** Dead Man's Snitch for WAN drop notifications
+- [ ] 🤖 **Local AI Operations Layer:** Use a read-only Proxmox MCP connection to inspect live cluster state, compare it to repo documentation, and reduce context switching during lab changes
+- [ ] 🧭 **Baseline and Drift Validation:** Maintain a live inventory and drift check for Proxmox nodes, VMs, LXCs, and route state before and after topology changes
+- [ ] 🌐 **vWAN / Transit Expansion:** Extend the lab beyond the current single-node design into a multi-link, routed, and more realistic WAN-style topology
+- [ ] 🛣️ **FRR + BGP Expansion:** Add richer routing logic, upstream path testing, and validation of route advertisements and failover behavior
+- [ ] 🔌 **Interface and VLAN Rollout:** Expand vmbr design, VLAN-aware uplinks, and segmentation for new lab services and test paths
+- [ ] 💓 **External Heartbeat Alerts (Uptime Kuma):** Dead Man's Snitch for WAN drop notifications and upstream outage detection
 - [ ] 🌐 **Unified Web Portal (Reverse Proxy):** Nginx Proxy Manager for clean URLs to internal services
-- [ ] 🛣️ **Subnet Routing / Tailscale Gateway:** Bridge for internal LXCs to reach `.ts.net` nodes
 - [ ] 📜 **Infrastructure as Code (IaC):** Terraform and Ansible for automated container provisioning
 - [ ] 🛠️ **Enhanced Hypervisor Management:** `ProxMenux` for streamlined PVE administration
 - [ ] 🗄️ **Hardware Asset Tracking:** `RackPeak` for visual server documentation
