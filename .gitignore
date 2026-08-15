@@ -41,3 +41,7 @@ Diagrams/*_preview.html
 
 # --- Local Diagram Source Drafts ---
 Diagrams/Sovereign-Lab-Network-Topology_v1.0.jsx
+
+# --- Local AI / MCP Runtime Config ---
+# Keep local editor MCP integration secrets and machine-specific config off the public repo.
+local-ai-mcp/
