@@ -42,10 +42,14 @@ I think it's worth saying plainly: this pattern isn't me trying to look cutting-
 
 It also gave me a genuinely useful side effect I didn't expect: a live drift check. I asked the assistant to compare what the API actually reports against what my own docs claim, and it caught a stopped monitoring container and a stale node name I'd been carrying in the README for a while. Small things, but exactly the kind of small things that quietly rot a lab's documentation if nobody ever double-checks them against reality.
 
+I couldn't tell you how many times I've made a change in the lab, thought "I'll document that later," and then let "later" quietly turn into "never." If I want to actually document as I go — generate the checklist, the runbook, the change management doc, all of it — the moment the change happens instead of a week after I've half-forgotten why I did it, this was the only realistic way I could think of to make that happen. Relying on my own memory to keep the architecture, the history, and the intent all straight is exactly the kind of single point of failure this whole project is supposed to be pushing back against. I don't trust my future self to remember why I picked a static route over a NAT rule at 1 AM, and I shouldn't have to.
+
+That's really the tradeoff I keep coming back to: let the machine do what it's actually good at — pulling live state, cross-referencing it against a pile of markdown, drafting the first pass of a checklist so I'm not staring at a blank page — and let the human brain do what it's actually good at: deciding whether a change is worth making, knowing when something "feels" wrong even before the metrics say so, and taking responsibility for what gets pushed to production. The AI can tell me my monitoring container is stopped. It can't tell me whether that's fine because I meant to pause it, or a problem because I forgot. That judgment call is still mine, and I want to keep it that way.
+
 ## 🎯 Where This Leaves Me
 
 I'm not handing the keys over. I'm not letting an assistant touch BGP configs unsupervised. What I have now is closer to a very well-informed second set of eyes that lives in the same window as my code, my docs, and my terminal — instead of a browser tab I have to keep re-explaining myself to.
 
-One pane of glass. No more shepherding context across four different screens like I'm carrying the One Ring between them. If I'm going to lean on AI while I build this out, I'd rather do it transparently, scoped tightly, and documented in the open — the same way I've tried to approach everything else in this project.
+One pane of glass to rule them all! No more shepherding context across four different screens like I'm carrying the One Ring between them. If I'm going to lean on AI while I build this out, I'd rather do it transparently, scoped tightly, and documented in the open — the same way I've tried to approach everything else in this project.
 
 **Next up:** using this same read-only view as a pre-flight check before the vWAN and BGP rollout actually begins.
