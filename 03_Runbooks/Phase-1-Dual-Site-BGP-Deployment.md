@@ -83,6 +83,7 @@ This expansion **does not modify** the existing management network (`10.0.10.0/2
 | **vmbr1** | — | — | Internal lab backbone (VLAN-aware, carries VLAN 10, 20, and core-router spine) | ✅ In use, **SHARED** |
 | **vmbr2** | — | — | Not created yet | ❌ Available |
 | **vmbr3** | — | — | Not created yet | ❌ Available |
+| **vmbr4** | — | — | Not created yet | ❌ Available |
 
 ---
 
@@ -101,6 +102,15 @@ This expansion **does not modify** the existing management network (`10.0.10.0/2
 |:---|:---|:---|:---|:---|:---|:---|
 | edge-rtr-a | `10.255.255.1/32` | `65001` | Site A headend router | 200 | vmbr2 | `10.10.10.1/24` |
 | edge-rtr-b | `10.255.255.2/32` | `65002` | Site B access router | 201 | vmbr3 | `10.20.20.1/24` |
+
+### Monitoring & Support Hosts (Multi-Homed Bastions)
+
+| Component | VMID | vmbr1 (mgmt) | vmbr2 (Site A) | vmbr3 (Site B) | Purpose |
+|:---|:---|:---|:---|:---|:---|
+| client-a1 | 210 | — | `10.10.10.11/24` | — | Site A test traffic generator |
+| ont-b1 | 220 | — | — | `10.20.20.11/24` | Site B test subscriber |
+| prometheus-mon | 230 | `10.0.10.x` (DHCP) | `10.10.10.30/24` | `10.20.20.30/24` | Prometheus + Alertmanager |
+| triage-worker | 240 | `10.0.10.31/24` | `10.10.10.31/24` | `10.20.20.31/24` | FastAPI triage webhook receiver |
 
 ---
 
@@ -129,37 +139,69 @@ Using separate bridges (vmbr2, vmbr3, vmbr4) creates an air-gap:
 - Proxmox to physical network connectivity (`vmbr0 ↔ 192.168.0.232`) remains stable
 - Testing BGP shutdown, BFD injection, and chaos faults is safe
 
+**Exception: monitoring/triage bastions (prometheus-mon, triage-worker)**
+
+These two containers are intentionally multi-homed — one NIC on `vmbr1` (management, for alert delivery) and one NIC each on `vmbr2`/`vmbr3` (to scrape/SSH into the isolated routers). This is safe only because they are plain LXCs with `net.ipv4.ip_forward=0` (Debian default, never enabled in this runbook) — a multi-homed host without forwarding cannot pass traffic between its own interfaces, so it does not become a bridge between the production and isolated networks. Never enable `ip_forward` on these containers.
+
 ---
+
+## 🖥️ Execution Method: CLI-Only (No GUI Required)
+
+**Everything in this runbook can be done from the command line over SSH to the Proxmox host (`pve`).** The Proxmox GUI is never required — `pct`, `qm`, and `/etc/network/interfaces` edits are all native CLI operations.
+
+However, two different connections are used for two different purposes, and they are **not interchangeable**:
+
+| Connection | Access Level | Used For | Can it execute changes? |
+|:---|:---|:---|:---|
+| **MCP (`proxmox-lab-mcp`)** | Read-only (`PVE_READONLY=true`) | Inspecting live state (nodes, bridges, VM/LXC configs) from the assistant/session | ❌ No — GET requests only |
+| **SSH to `pve`** | Full root/admin | Creating bridges, provisioning `pct`/`qm` containers, editing `/etc/network/interfaces`, running FRR config | ✅ Yes |
+
+**Practical workflow:** use MCP (or the [refresh script](../09_Scripts/refresh_infra_snapshot.py)) to confirm current state cheaply, then SSH directly into `pve` to execute every `pct create`, `ip link`, and `systemctl restart networking` command in this runbook. The GUI is only ever an optional alternative for Phase 1.1–1.3 bridge creation and Phase 2 LXC creation — every command below has a CLI equivalent and that's the path this runbook assumes.
+
+### SSH Trust & Shell Aliases (established 2026-08-22)
+
+Passwordless key-based SSH is configured from `sovereign-ops` directly to `pve` (root). Two shell aliases are available from any interactive terminal on `sovereign-ops`:
+
+| Alias | Target | Purpose |
+|:---|:---|:---|
+| `lab` | `sovereign-ops` | Jump box / management cockpit access from your workstation |
+| `proxmox` | `pve` | Direct root shell on the Proxmox host, for every command in this runbook |
+
+Example usage for any runbook step:
+```bash
+proxmox "ip link show | grep -E 'vmbr[0-4]'"
+proxmox "pct list"
+```
+
+No IP addresses or credentials are needed at the command line — the alias encapsulates the connection. See `~/.bashrc` on `sovereign-ops` if the alias needs to be re-created on a new session host.
 
 ## 0️⃣ PHASE 0: Inventory & Design Freeze
 
 **Objective:** Confirm that Proxmox has available resources and that the planned design does not conflict with existing infrastructure.
 
-### 0.1 Use MCP to Inspect Live Proxmox State
+### 0.1 Confirm Live Proxmox State
 
-The Proxmox MCP server on `sovereign-ops` is configured and verified. Use it to gather live state without manual click-through.
+Use the read-only MCP connection or the [refresh_infra_snapshot.py](../09_Scripts/refresh_infra_snapshot.py) script to gather live state without manual click-through or SSH.
 
 **Expected State:**
 - Proxmox API is reachable
-- Cluster resources endpoint returns VM and LXC data
 - Node storage and memory are available
+- State matches [Infrastructure-State-Snapshot.md](../01_Infrastructure/Infrastructure-State-Snapshot.md)
 
-**How to Check (from VS Code tunnel):**
+**How to check:**
 
 ```bash
-# From the sovereign-ops terminal within the VS Code tunnel
-curl -sk -H "Authorization: PVEAPIToken=${PROXMOX_TOKEN_ID}=${PROXMOX_TOKEN_SECRET}" \
-  "${PROXMOX_HOST}/api2/json/cluster/resources" | jq '.data[] | select(.type=="node") | {node: .node, maxcpu: .maxcpu, maxmem: .maxmem, status: .status}'
+cd /home/eric/Sovereign-Lab-Docs
+python3 09_Scripts/refresh_infra_snapshot.py
+cat 01_Infrastructure/Infrastructure-State-Snapshot.md
 ```
 
-**Expected Output:**
-```json
-{
-  "node": "sovereign",
-  "maxcpu": 12,
-  "maxmem": 68719476736,
-  "status": "online"
-}
+**Expected Output (node section):**
+```
+## Node: `pve`
+- Status: online
+- CPUs: 4
+- Memory: 31.0 GiB
 ```
 
 ### 0.2 Confirm No Address Conflicts
@@ -395,8 +437,9 @@ Mark Phase 1 complete when all three bridges are created and isolation is confir
 **Via CLI:**
 
 ```bash
-pct create 200 local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst \
+pct create 200 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -hostname edge-rtr-a \
+  -storage Sovereign_VMs \
   -cores 2 \
   -memory 512 \
   -swap 256 \
@@ -508,8 +551,9 @@ Repeat steps 2.1 through 2.3 for Site B, using:
 **Via CLI:**
 
 ```bash
-pct create 201 local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst \
+pct create 201 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -hostname edge-rtr-b \
+  -storage Sovereign_VMs \
   -cores 2 \
   -memory 512 \
   -swap 256 \
@@ -799,11 +843,12 @@ Mark Phase 3 complete when:
 Create a minimal Debian LXC on Site A that will generate test traffic.
 
 ```bash
-pct create 210 local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst \
+pct create 210 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -hostname client-a1 \
+  -storage Sovereign_VMs \
   -cores 1 \
   -memory 128 \
-  -net0 name=eth0,bridge=vmbr1,ip=dhcp
+  -net0 name=eth0,bridge=vmbr2,ip=dhcp
 
 pct start 210
 pct exec 210 bash
@@ -841,11 +886,12 @@ ping 10.20.20.11  # Will be tested once ont-b1 exists
 Create a minimal Alpine LXC on Site B to represent a subscriber access device.
 
 ```bash
-pct create 220 local:vztmpl/alpine-3.19-default_20240207_amd64.tar.zst \
+pct create 220 local:vztmpl/alpine-3.22-default_20250617_amd64.tar.xz \
   -hostname ont-b1 \
+  -storage Sovereign_VMs \
   -cores 1 \
   -memory 128 \
-  -net0 name=eth0,bridge=vmbr2,ip=dhcp
+  -net0 name=eth0,bridge=vmbr3,ip=dhcp
 
 pct start 220
 pct exec 220 sh  # Alpine uses sh, not bash
@@ -1030,15 +1076,26 @@ curl http://localhost:9100/metrics | head -20
 Create an LXC to run Prometheus, which will scrape the exporters.
 
 ```bash
-pct create 230 local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst \
+pct create 230 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -hostname prometheus-mon \
+  -storage Sovereign_VMs \
   -cores 2 \
   -memory 1024 \
-  -net0 name=eth0,bridge=vmbr0,ip=dhcp
+  -net0 name=eth0,bridge=vmbr1,tag=10,ip=dhcp \
+  -net1 name=eth1,bridge=vmbr2,ip=10.10.10.30/24 \
+  -net2 name=eth2,bridge=vmbr3,ip=10.20.20.30/24
 
 pct start 230
 pct exec 230 bash
 ```
+
+**Why three NICs:** `eth0` (vmbr1, management) is used for outbound alerting/email via the existing Postfix relay. `eth1`/`eth2` reach the isolated Site A/B LANs so Prometheus can actually scrape `10.10.10.1:9342` and `10.20.20.1:9342`. This does **not** bridge the isolated and production networks — confirm forwarding stays disabled:
+
+```bash
+sysctl net.ipv4.ip_forward   # must read 0
+```
+
+A plain LXC with `ip_forward=0` is a multi-homed bastion, not a router — it cannot pass traffic between its interfaces even though it touches both networks.
 
 **Inside prometheus-mon:**
 
@@ -1215,7 +1272,7 @@ route:
 receivers:
   - name: 'triage-webhook'
     webhook_configs:
-      - url: 'http://localhost:8000/webhook'
+      - url: 'http://10.0.10.31:8000/webhook'
         send_resolved: false
 EOF
 
@@ -1300,15 +1357,20 @@ echo "triage ALL=(ALL) NOPASSWD:/usr/bin/vtysh" >> /etc/sudoers.d/triage
 Create a dedicated LXC for the Python FastAPI service.
 
 ```bash
-pct create 240 local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst \
+pct create 240 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -hostname triage-worker \
+  -storage Sovereign_VMs \
   -cores 1 \
   -memory 512 \
-  -net0 name=eth0,bridge=vmbr0,ip=static,ip=10.0.10.30/24,gw=10.0.10.1
+  -net0 name=eth0,bridge=vmbr1,tag=10,ip=10.0.10.31/24,gw=10.0.10.1 \
+  -net1 name=eth1,bridge=vmbr2,ip=10.10.10.31/24 \
+  -net2 name=eth2,bridge=vmbr3,ip=10.20.20.31/24
 
 pct start 240
 pct exec 240 bash
 ```
+
+**Why three NICs:** `eth0` (vmbr1, management) receives the Alertmanager webhook. `eth1`/`eth2` reach the isolated Site A/B LANs so it can SSH into `edge-rtr-a`/`edge-rtr-b` for evidence collection. Confirm `net.ipv4.ip_forward` stays `0` on this container — same isolation guarantee as `prometheus-mon`.
 
 **Inside triage-worker:**
 
@@ -1495,7 +1557,7 @@ Send a test alert from Alertmanager to the triage worker.
 
 ```bash
 # From alertmanager container or another host
-curl -X POST http://10.0.10.30:8000/webhook \
+curl -X POST http://10.0.10.31:8000/webhook \
   -H "Content-Type: application/json" \
   -d '{
     "status": "firing",

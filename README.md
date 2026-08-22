@@ -67,11 +67,35 @@ This project is intentionally structured as both a technical lab and a professio
 - [x] **Workstation migration and bare-metal rebuild workflows** using Git, SSH, and secure automation
 - [x] **Telemetry stack** combining Netdata, service monitoring, and health visibility
 
-## 🚀 Current Direction and Future Expansion
+## 🚀 Current Phase: Phase 1 Dual-Site BGP & Observability Lab
 
-The next phase of the lab focuses on making the environment more realistic, more resilient, and more useful as an engineering sandbox.
+**Status:** In Progress (2026-08-22)  
+**Runbook:** [Phase-1-Dual-Site-BGP-Deployment.md](03_Runbooks/Phase-1-Dual-Site-BGP-Deployment.md)  
+**Session Minutes:** [2026-08-22 Consolidation & Setup](Session_Minutes/2026-08-22_Phase1-MCP-Setup-and-Runbook-Consolidation.md)
 
-Planned work includes:
+The next 8-phase deployment builds an **isolated dual-site ISP-like network simulation** on the Proxmox lab with automated fault detection and enriched alerting:
+
+- **Phase 0–1:** Infrastructure inventory and isolated bridge creation (vmbr2, vmbr3, vmbr4)
+- **Phase 2–3:** Provision two edge routers (AS 65001, AS 65002) with FRR and eBGP peering over BFD
+- **Phase 4:** Add test clients and traffic generators to each site
+- **Phase 5–6:** Deploy Prometheus + Alertmanager observability stack (exporters on routers, triage routing)
+- **Phase 7:** Autonomous triage worker (Python FastAPI) that enriches alerts with live CLI evidence from routers
+- **Phase 8:** Controlled failure injection demonstration (link shutdown, BFD timeout, automatic recovery)
+
+**Design Principle:** Complete network isolation from production infrastructure (separate bridges, no IP forwarding on monitoring containers) ensures chaos testing cannot cascade to management or ISP connectivity.
+
+### Supporting Infrastructure (New in 2026-08-22)
+
+- **Proxmox MCP integration:** Read-only API token for state discovery, accessible from VS Code tunnel to sovereign-ops
+- **Infrastructure documentation refresh:** Automated script + monthly SOP to keep docs synchronized with live state ([SOP](08_SOP/Standard%20Operating%20Procedure%20-%20Infrastructure%20Documentation%20Refresh.md), [Script](09_Scripts/refresh_infra_snapshot.py))
+- **SSH key trust:** Passwordless key-based access from sovereign-ops to pve, with shell aliases for ease of use
+- **LXC templates:** Debian 12.12 and Alpine 3.22 staged on local storage, ready for container provisioning
+
+---
+
+## 🚀 Future Expansion (Post-Phase 1)
+
+Once Phase 1 is complete and validated, planned work includes:
 
 - **AI-assisted operations and drift detection** for Proxmox, VMs, LXCs, and configuration state
 - **vWAN / transit expansion** to simulate broader networking and route policy changes
