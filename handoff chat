@@ -1,0 +1,32 @@
+Updated todo list
+
+I’ll give you a clean handoff block so you can continue from the work-laptop tunnel chat without losing progress.
+
+You can switch, but this exact live thread does not automatically jump devices in a guaranteed way. Fastest path is to open Copilot Chat on the work laptop tunnel window and paste a handoff note.
+
+Use this handoff text:
+
+I am on the sovereign-ops VS Code tunnel session from my work laptop.  
+Tunnel is connected and working.  
+Repo is open on sovereign-ops.  
+I edited the MCP config with nano in .vscode/mcp.json.  
+Current config uses proxmox-mcp-server with:
+- PROXMOX_HOST
+- PROXMOX_TOKEN_ID
+- PROXMOX_TOKEN_SECRET
+- PROXMOX_INSECURE_TLS=true
+- PVE_READONLY=true
+
+Please continue from here by validating:
+1. Proxmox API version endpoint returns JSON
+2. Cluster resources endpoint returns VM/LXC data
+3. MCP server loads in editor without config errors
+
+Also include these next commands in that new chat:
+
+cd ~/Sovereign-Lab-Docs
+cat .vscode/mcp.json
+curl -sk -H "Authorization: PVEAPIToken=${PROXMOX_TOKEN_ID}=${PROXMOX_TOKEN_SECRET}" "${PROXMOX_HOST}/api2/json/version"
+curl -sk -H "Authorization: PVEAPIToken=${PROXMOX_TOKEN_ID}=${PROXMOX_TOKEN_SECRET}" "${PROXMOX_HOST}/api2/json/cluster/resources?type=vm" | head -c 500
+
+If you want, stay in this chat and I can still guide the exact same validation while you run commands on the work laptop.
