@@ -1,7 +1,8 @@
 # 🏛️ Sovereign Lab: Architecture Overview
-**Last Updated:** 2026-05-13
+**Last Updated:** 2026-08-22
 **Version:** 1.2
 **Status:** Active Production
+**Last Verified Against Live State:** 2026-08-22 (see [Infrastructure-State-Snapshot.md](Infrastructure-State-Snapshot.md); refresh via [SOP](../08_SOP/Standard%20Operating%20Procedure%20-%20Infrastructure%20Documentation%20Refresh.md) if older than 30 days)
 
 ## 1.  🛰️ Networking & Routing
 
