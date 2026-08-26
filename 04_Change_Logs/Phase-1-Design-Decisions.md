@@ -122,7 +122,7 @@ router bgp 65001
   default-information originate  # Announces fake default route
 ```
 
-### Why Isolation (vmbr2, vmbr3, vmbr4) Is Safer
+### Why Isolation (vmbr2, vmbr3, vmbr99) Is Safer
 
 **Physical Isolation = Network Isolation:**
 
@@ -149,7 +149,7 @@ router bgp 65001
 │ │  ├─ LXC 201: edge-rtr-b (AS 65002)           │ │
 │ │  └─ LXC 220: ont-b1 (test subscriber)        │ │
 │ │                                                │ │
-│ │ vmbr4: 172.16.1.0/30 (Transit) [ISOLATED]    │ │
+│ │ vmbr99: 172.16.1.0/30 (Transit Backbone) [ISOLATED] │ │
 │ │  ├─ LXC 200 eth1: 172.16.1.1/30              │ │
 │ │  └─ LXC 201 eth1: 172.16.1.2/30              │ │
 │ └────────────────────────────────────────────────┘ │
@@ -208,7 +208,7 @@ router bgp 65001
 
 ## ISP Topology Interpretation: What We're Actually Building
 
-The choice of isolated bridges (vmbr2, vmbr3, vmbr4) **does not diminish** the ISP simulation value. Instead, it represents a more realistic enterprise networking scenario:
+The choice of isolated bridges (vmbr2, vmbr3, vmbr99) **does not diminish** the ISP simulation value. Instead, it represents a more realistic enterprise networking scenario:
 
 ```text
 ISP BACKBONE (would be vmbr1 with circuit-breaker policies)
@@ -267,7 +267,7 @@ ISP BACKBONE (would be vmbr1 with circuit-breaker policies)
 ---
 
 **Next Steps:**
-1. Proceed with Phase 1 using vmbr2, vmbr3, vmbr4
+1. Proceed with Phase 1 using vmbr2, vmbr3, vmbr99
 2. Document Phase 1 results and lessons learned
 3. Plan Phase 2 with proper circuit breakers for vmbr1 integration
 4. Establish policy framework for shared backbone scenarios

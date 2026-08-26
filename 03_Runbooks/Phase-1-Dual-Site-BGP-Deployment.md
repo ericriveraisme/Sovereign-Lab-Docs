@@ -46,6 +46,9 @@ The demonstration proves that when a simulated outage occurs:
 5. The triage worker verifies the cause directly against the router CLI
 6. An enriched incident notification is delivered with evidence and classification
 
+**Manual-first rollout policy:**
+This Phase 1 topology is the foundation for every subsequent phase. The transit backbone (`vmbr99`) and the two site LANs (`vmbr2`, `vmbr3`) will be created manually first, validated in isolation, and proven stable before any NetBox / Terraform / Ansible automation is introduced. In other words: we are building the stable backbone first, and automation comes later once the routing model is proven.
+
 **Design Separation:**  
 This expansion **does not modify** the existing management network (`10.0.10.0/24` VLAN 10) or the host network (`10.0.20.0/24` VLAN 20). The new simulated sites use distinct address ranges (`10.10.10.x`, `10.20.20.x`) on isolated bridges.
 
@@ -83,7 +86,7 @@ This expansion **does not modify** the existing management network (`10.0.10.0/2
 | **vmbr1** | — | — | Internal lab backbone (VLAN-aware, carries VLAN 10, 20, and core-router spine) | ✅ In use, **SHARED** |
 | **vmbr2** | — | — | Not created yet | ❌ Available |
 | **vmbr3** | — | — | Not created yet | ❌ Available |
-| **vmbr4** | — | — | Not created yet | ❌ Available |
+| **vmbr99** | — | — | Not created yet (WAN Transit) | ❌ Available |
 
 ---
 
@@ -93,8 +96,20 @@ This expansion **does not modify** the existing management network (`10.0.10.0/2
 |:---|:---|:---|:---|:---|
 | **Simulated Site A LAN** | `10.10.10.0/24` | **vmbr2** (create) | Edge Router A, Client A1, etc. | ✅ New |
 | **Simulated Site B LAN** | `10.20.20.0/24` | **vmbr3** (create) | Edge Router B, ONT B1, etc. | ✅ New |
-| **Simulated Transit WAN** | `172.16.1.0/30` | **vmbr4** (create) | eBGP link between routers | ✅ New |
+| **Simulated Transit WAN / Backbone** | `172.16.1.0/30` | **vmbr99** (create) | eBGP transit backbone between sites | ✅ New |
 | **Router Loopbacks** | `10.255.255.0/24` | — | Router IDs for BGP and management | ✅ New |
+
+### Phase 1 Rollout Blueprint (Manual-First)
+
+This phase is deliberately being built as a layered manual bootstrap before automation is introduced. The order matters:
+
+1. **Create the isolated backbone:** `vmbr99` is the transit link that connects the two ASNs and acts as the primary Phase 1 carrier backbone.
+2. **Create the site LANs:** `vmbr2` (Site A) and `vmbr3` (Site B) are attached to each site's routers and endpoints.
+3. **Provision the routers:** `edge-rtr-a` and `edge-rtr-b` are created with their LAN and transit interfaces assigned to the correct bridges.
+4. **Validate the base routing model:** confirm eBGP adjacency, BFD status, and route propagation without introducing OSPF or template automation.
+5. **Only then expand:** once this baseline is stable, add automation via NetBox, Terraform, and Ansible for scale-out and OSPFv3 internal provisioning.
+
+> This is the deliberate design rule: the backbone must be working and proven before we start automating additional nodes or internal routing domains.
 
 ### Phase 1 Router Loopback Details
 
@@ -114,7 +129,7 @@ This expansion **does not modify** the existing management network (`10.0.10.0/2
 
 ---
 
-## ⚠️ CRITICAL: Why We Use New Bridges (vmbr2, vmbr3, vmbr4)
+## ⚠️ CRITICAL: Why We Use New Bridges (vmbr2, vmbr3, vmbr99)
 
 **Current vmbr1 is SHARED and carries production traffic:**
 
@@ -133,7 +148,7 @@ If we attach Phase 1 routers and simulated sites to the SAME vmbr1 bridge, then:
 
 **Safety by isolation:**
 
-Using separate bridges (vmbr2, vmbr3, vmbr4) creates an air-gap:
+Using separate bridges (vmbr2, vmbr3, vmbr99) creates an air-gap:
 - Phase 1 faults remain isolated to the simulation
 - Management traffic never touches simulated routers
 - Proxmox to physical network connectivity (`vmbr0 ↔ 192.168.0.232`) remains stable
@@ -217,18 +232,18 @@ Verify that the simulated site networks do not overlap with existing infrastruct
 
 ### 0.3 Confirm Target Bridges Do Not Exist
 
-Verify that Phase 1 can use `vmbr2`, `vmbr3`, and `vmbr4` without conflicts. The existing `vmbr0` and `vmbr1` are in production and must NOT be modified.
+Verify that Phase 1 can use `vmbr2`, `vmbr3`, and `vmbr99` without conflicts. The existing `vmbr0` and `vmbr1` are in production and must NOT be modified.
 
 **Check from Proxmox host SSH:**
 ```bash
-ip link show | grep -E 'vmbr[0-4]'
+ip link show | grep -E 'vmbr[0-9]+'
 ```
 
 **Expected output:**
 ```
 2: vmbr0: <...>  # Management bridge (existing, in use)
 3: vmbr1: <...>  # Internal backbone (existing, in use)
-No vmbr2, vmbr3, or vmbr4
+No vmbr2, vmbr3, or vmbr99
 ```
 
 **Do NOT modify vmbr0 or vmbr1.** They carry production traffic to `core-router`, DNS, monitoring, and management VMs.
@@ -285,7 +300,7 @@ Mark Phase 0 as complete in the progress table above once all checks pass.
 
 ## 1️⃣ PHASE 1: Network Bridges & Isolation
 
-**Objective:** Create THREE NEW isolated software bridges (vmbr2, vmbr3, vmbr4) that will carry the simulated Site A, Site B, and transit traffic. These bridges must remain COMPLETELY ISOLATED from the existing management network (vmbr0, vmbr1) and the physical network.
+**Objective:** Create THREE NEW isolated software bridges (vmbr2, vmbr3, vmbr99) that will carry the simulated Site A, Site B, and transit traffic. These bridges must remain COMPLETELY ISOLATED from the existing management network (vmbr0, vmbr1) and the physical network.
 
 ### 1.1 Create vmbr2 (Site A LAN)
 
@@ -340,7 +355,7 @@ systemctl restart networking
 ip link show vmbr3
 ```
 
-### 1.3 Create vmbr4 (Transit/eBGP Link)
+### 1.3 Create vmbr99 (Transit/eBGP Link)
 
 This bridge carries the `172.16.1.0/30` point-to-point eBGP transit traffic. Completely isolated.
 
@@ -348,8 +363,8 @@ This bridge carries the `172.16.1.0/30` point-to-point eBGP transit traffic. Com
 ```bash
 cat >> /etc/network/interfaces <<EOF
 
-auto vmbr4
-iface vmbr4 inet manual
+auto vmbr99
+iface vmbr99 inet manual
     bridge-ports none
     bridge-stp off
     bridge-fd 0
@@ -360,22 +375,22 @@ systemctl restart networking
 
 **Verification:**
 ```bash
-ip link show vmbr4
+ip link show vmbr99
 ```
 
 ### 1.4 Confirm Complete Isolation
 
-Verify that the new bridges (vmbr2, vmbr3, vmbr4) are **not attached to physical network interfaces** and cannot route to the home network. They should be isolated software bridges only.
+Verify that the new bridges (vmbr2, vmbr3, vmbr99) are **not attached to physical network interfaces** and cannot route to the home network. They should be isolated software bridges only.
 
 **Test isolation:**
 ```bash
 # Verify no physical ports attached
 ip link show vmbr2 | grep "LOWER_UP"
 ip link show vmbr3 | grep "LOWER_UP"
-ip link show vmbr4 | grep "LOWER_UP"
+ip link show vmbr99 | grep "LOWER_UP"
 
 # Verify they have NO routes to external networks
-ip route show | grep -E 'vmbr[234]'
+ip route show | grep -E 'vmbr(2|3|99)'
 # Expected: no output
 
 # Verify they cannot reach home network
@@ -429,7 +444,7 @@ Mark Phase 1 complete when all three bridges are created and isolation is confir
 
 2. Add Network Interfaces
    - **eth0:** Attached to `vmbr2` (Site A LAN - isolated)
-   - **eth1:** Attached to `vmbr4` (Transit/eBGP - isolated)
+   - **eth1:** Attached to `vmbr99` (Transit/eBGP - isolated)
    - Comment each interface clearly
 
 3. Start the container
@@ -444,7 +459,7 @@ pct create 200 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -memory 512 \
   -swap 256 \
   -net0 name=eth0,bridge=vmbr2,ip=dhcp \
-  -net1 name=eth1,bridge=vmbr4,ip=dhcp
+  -net1 name=eth1,bridge=vmbr99,ip=dhcp
 
 pct start 200
 pct exec 200 bash  # Enter container shell
@@ -545,7 +560,7 @@ Repeat steps 2.1 through 2.3 for Site B, using:
 - VMID: `201`
 - Hostname: `edge-rtr-b`
 - **eth0 attached to `vmbr3`** → `10.20.20.1/24`
-- **eth1 attached to `vmbr4`** → `172.16.1.2/30`
+- **eth1 attached to `vmbr99`** → `172.16.1.2/30`
 - Loopback: `10.255.255.2/32`
 
 **Via CLI:**
@@ -558,7 +573,7 @@ pct create 201 local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst \
   -memory 512 \
   -swap 256 \
   -net0 name=eth0,bridge=vmbr3,ip=dhcp \
-  -net1 name=eth1,bridge=vmbr4,ip=dhcp
+  -net1 name=eth1,bridge=vmbr99,ip=dhcp
 
 pct start 201
 pct exec 201 bash

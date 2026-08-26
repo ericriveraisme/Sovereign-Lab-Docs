@@ -9,7 +9,7 @@ All notable changes to the Sovereign Lab project are documented here. This log t
 - **Infrastructure-State-Snapshot.md** — Auto-generated current state (node resources, bridges, VM/LXC inventory, VLAN assignments)
 - **refresh_infra_snapshot.py** — Python script to query live Proxmox API and regenerate state snapshot (read-only MCP token)
 - **SOP: Infrastructure Documentation Refresh** — Scheduled snapshot refresh (monthly cron) and reconciliation workflow
-- **Phase-1-Design-Decisions.md** — Design rationale explaining why Phase 1 uses isolated bridges (vmbr2/3/4) instead of production vmbr1, with ISP cascade risk analysis
+- **Phase-1-Design-Decisions.md** — Design rationale explaining why Phase 1 uses isolated bridges (vmbr2/3/99) instead of production vmbr1, with ISP cascade risk analysis
 - **Session_Minutes/** folder — New directory for session notes and operational logs
 - **2026-08-22 Session Minutes** — Complete documentation of infrastructure discovery, runbook consolidation, and execution setup
 - MCP connection established from VS Code tunnel to sovereign-ops, with read-only API token for state queries
@@ -24,7 +24,8 @@ All notable changes to the Sovereign Lab project are documented here. This log t
 - Corrected all Phase 1 runbook `pct create` commands:
   - Updated LXC template versions to actual available images
   - Added explicit `-storage Sovereign_VMs` to all container provisioning (ensures disks go to correct LVM-thin pool)
-  - Fixed bridge allocations (vmbr1/2/3 → vmbr2/3/4 for isolation)
+  - Fixed bridge allocations (vmbr1/2/3 → vmbr2/3/99 for isolation)
+  - Explicitly named the dedicated transit backbone as `vmbr99` to make the WAN layer obvious at a glance
   - Fixed Alertmanager webhook target (10.0.10.31:8000 for triage-worker container)
   - Added multi-homed NICs to monitoring containers (prometheus-mon, triage-worker) for reachability to isolated networks
 
@@ -38,7 +39,7 @@ All notable changes to the Sovereign Lab project are documented here. This log t
 - Proxmox node `pve`: 4 CPUs, 31.1 GiB RAM, online
 - Existing infrastructure: 5 containers (core-router 100, sovereign-ops 101, ghost-user-01 102, netdata-monitor 103, dns.sovereign.lab 104)
 - Existing bridges: vmbr0 (physical 192.168.0.232), vmbr1 (internal VLAN-aware backbone)
-- Available bridges: vmbr2, vmbr3, vmbr4 (free for Phase 1)
+- Available bridges: vmbr2, vmbr3, vmbr99 (free for Phase 1 transit backbone)
 - Address space: 10.10.10.x, 10.20.20.x, 172.16.1.x confirmed unused
 - Container IDs 200–240 confirmed free for Phase 1 provisioning
 - Storage: `Sovereign_VMs` LVM-thin pool has 380GB available; `local` boot storage has 35GB available
@@ -51,7 +52,7 @@ All notable changes to the Sovereign Lab project are documented here. This log t
 
 ### Next Steps (Phase 0 Ready)
 - Execute Phase 0: Verify current state matches snapshot
-- Execute Phase 1: Create isolated bridges (vmbr2, vmbr3, vmbr4)
+- Execute Phase 1: Create isolated bridges (vmbr2, vmbr3, vmbr99) and validate the transit backbone before expanding the AS
 - Execute Phase 2: Provision edge routers (VMID 200, 201) with FRR
 - Ongoing: Monthly infrastructure snapshot refresh (configured in cron)
 

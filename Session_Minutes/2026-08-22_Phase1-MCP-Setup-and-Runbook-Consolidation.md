@@ -21,12 +21,12 @@
 - Confirmed actual node name: `pve` (not `sovereign` as older docs suggested)
 - Confirmed existing infrastructure: 5 containers (100–104) on vmbr0/vmbr1
 - Discovered vmbr1 is shared production backbone carrying VLAN 10 & 20, plus core-router spine
-- Confirmed vmbr2/3/4 are available for Phase 1 isolation
+- Confirmed vmbr2/3/99 are available for Phase 1 isolation, with vmbr99 designated as the dedicated transit backbone
 
 **Risk Identified:** Original Phase 1 design planned to use vmbr1 (shared with production)
 - This would allow routing faults in Phase 1 to cascade to management/telemetry networks
 - Could potentially poison default routes and disconnect Proxmox from ISP uplink
-- **Resolution:** Shifted Phase 1 to use new isolated bridges (vmbr2, vmbr3, vmbr4)
+- **Resolution:** Shifted Phase 1 to use new isolated bridges (vmbr2, vmbr3, vmbr99), with vmbr99 reserved as the transit backbone for the dual-site BGP link
 
 **Outcome:** 
 - Updated [Architecture_Overview_1.1.md](../01_Infrastructure/Architecture_Overview_1.1.md) with "Last Verified" timestamp
@@ -55,7 +55,7 @@
 - Consolidated all plans into a single unified 8-phase runbook: [Phase-1-Dual-Site-BGP-Deployment.md](../03_Runbooks/Phase-1-Dual-Site-BGP-Deployment.md)
 - Phases 0–8 cover:
   - **Phase 0:** Inventory & design freeze (verify Proxmox state, no conflicts)
-  - **Phase 1:** Create vmbr2, vmbr3, vmbr4 bridges (isolated, no physical ports)
+  - **Phase 1:** Create vmbr2, vmbr3, vmbr99 bridges (isolated, no physical ports), with vmbr99 acting as the manual-first transit backbone
   - **Phase 2:** Provision edge-rtr-a (AS 65001) and edge-rtr-b (AS 65002) with FRR
   - **Phase 3:** BGP peering, BFD, loopback routes
   - **Phase 4:** Test clients (client-a1, ont-b1) for traffic generation

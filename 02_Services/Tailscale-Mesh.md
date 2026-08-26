@@ -6,7 +6,7 @@
 Tailscale establishes a WireGuard-backed mesh network, allowing administrative access to the Sovereign Lab without opening inbound ports on the physical ISP router.
 
 ## Authorized Nodes
-* `sovereign-ops` (`100.122.30.25`) - Lab Management
+* `sovereign-ops` (`100.x.x.x`) - Lab Management
 * `Tiamat` - Mobile Command (Windows/WSL)
 * `Bahamut` - Workstation & Tier 3 Storage Provider
 

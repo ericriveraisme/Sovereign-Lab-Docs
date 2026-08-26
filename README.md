@@ -75,12 +75,14 @@ This project is intentionally structured as both a technical lab and a professio
 
 The next 8-phase deployment builds an **isolated dual-site ISP-like network simulation** on the Proxmox lab with automated fault detection and enriched alerting:
 
-- **Phase 0–1:** Infrastructure inventory and isolated bridge creation (vmbr2, vmbr3, vmbr4)
+- **Phase 0–1:** Infrastructure inventory and isolated bridge creation (`vmbr2`, `vmbr3`, and the transit backbone `vmbr99`)
 - **Phase 2–3:** Provision two edge routers (AS 65001, AS 65002) with FRR and eBGP peering over BFD
 - **Phase 4:** Add test clients and traffic generators to each site
 - **Phase 5–6:** Deploy Prometheus + Alertmanager observability stack (exporters on routers, triage routing)
 - **Phase 7:** Autonomous triage worker (Python FastAPI) that enriches alerts with live CLI evidence from routers
 - **Phase 8:** Controlled failure injection demonstration (link shutdown, BFD timeout, automatic recovery)
+
+**Deployment Rule:** This phase is intentionally built as a **manual-first rollout**: establish the transit backbone and site LANs, validate them in isolation, and only then add NetBox/IPAM, Terraform, and Ansible automation for broader scale-out. The objective is to keep the foundation stable, documented, and safe before adding dynamic internal routing or larger AS expansion.
 
 **Design Principle:** Complete network isolation from production infrastructure (separate bridges, no IP forwarding on monitoring containers) ensures chaos testing cannot cascade to management or ISP connectivity.
 
